@@ -1,0 +1,21 @@
+# 默认场景配置（普通门诊，平衡新诊与复查）
+simulation:
+  duration: 480        # 8小时仿真（一天门诊量）
+  runs: 10             # 统计可靠性：10次独立运行
+
+new_patient:
+  arrival_rate: 0.20   # 新诊到达率 (人/分钟)
+  service_time: 10.0   # 新诊服务时长 (分钟)
+
+recheck_patient:
+  arrival_rate: 0.10   # 复查到达率 (人/分钟)
+  service_time: 5.0    # 复查服务时长 (分钟)
+
+preemption:
+  enabled: true         # 默认启用 preemption
+  threshold_minutes: 3  # 已服务超过3分钟则允许被高优先级复查中断
+
+output:
+  verbose: false
+  csv_path: "outputs/sample.csv"
+  chart_path: "outputs/sample_chart.png"

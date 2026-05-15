@@ -1,0 +1,174 @@
+## 2026-05-16 - Task 34: 实现结果持久化（SQLite）
+
+### What was done:
+- 创建 sqlite/db.go 模块，实现 SQLite 结果持久化
+  - 使用 modernc.org/sqlite 纯 Go 实现（无需 CGO）
+  - SimulationResult 结构体存储完整仿真结果
+  - InitDB() 初始化数据库和表
+  - SaveResult() 保存单条结果
+  - QueryResults() 支持过滤查询
+  - GetRecentResults() 获取最近记录
+- 在 main.go 中集成 SQLite 功能
+  - 添加 saveToSQLite() 辅助函数
+  - 在 runSimulation(), executeSimulation(), runSimulate() 中保存结果到数据库
+  - 实现 historyCmd 子命令，支持 --limit, --preemption, --no-preemption 过滤
+  - 在 main() 中初始化数据库和关闭连接
+
+### Testing:
+- go build ./... 成功
+- ./bin/sim.exe simulate -c configs/default.yaml 运行后显示"结果已保存到数据库"
+- ./bin/sim.exe history --limit 5 正确显示历史记录
+- ./bin/sim.exe history --preemption 过滤正常工作
+- ./bin/sim.exe history --no-preemption 过滤正常工作
+
+### Notes:
+- Task 34 完成
+- Task 35 历史结果查询 CLI 已包含在 Task 34 中一并实现
+- 下一步：Task 36 实现 Streamlit Web 可视化界面
+
+### What was done:
+- 实现 Python 日志模块：在 engine.py 中配置 logging 模块，输出到 outputs/logs/sim.log
+  - 配置 FileHandler 和 StreamHandler（stderr）
+  - 日志格式：`%(asctime)s - %(levelname)s - [engine] - %(message)s`
+- 实现 Go 日志模块：在 main.go 中实现 initLog() 函数
+  - 使用标准库 log 包
+  - 输出到 outputs/logs/sim.log
+  - 配置 log.LstdFlags | log.Lshortfile 格式
+- 在 runSimulation(), executeSimulation(), runSimulate() 函数中添加日志调用
+
+### Testing:
+- go build ./... 成功
+- echo '...' | python sim/engine.py 输出日志到 outputs/logs/sim.log
+- ./bin/sim.exe run 正确记录日志到 outputs/logs/sim.log
+- ./bin/sim.exe execute 正确记录日志到 outputs/logs/sim.log
+- pytest tests/test_engine.py -v 通过 (8 passed, 1 skipped)
+- go test ./... 通过
+
+### Notes:
+- Task 30 完成
+- 下一步：Task 31 创建示例输出数据
+
+---
+
+## 2026-05-16 - Task 31: 创建示例输出数据
+
+### What was done:
+- 运行 sensitivity run 生成敏感性分析示例数据
+  - sample_sensitivity.csv: preemption_threshold 0-15 分钟扫描结果
+  - sample_sensitivity.png: 敏感性分析图表 (2084x1476, 114KB)
+- 运行 simulate 生成单次仿真示例数据
+  - sample_simulate_result.csv: 新诊/复查到达率、服务时长等参数下的仿真结果
+- 运行 compare 生成对比模式示例数据
+  - sample_compare_result.csv: 禁止 vs 允许 Preemption 对比结果
+- 更新 data/README.md 添加示例数据文件说明和使用指南
+
+### Testing:
+- 验证所有示例文件存在且格式正确
+- sample_sensitivity.csv: CSV ASCII text
+- sample_sensitivity.png: PNG image data, 2084 x 1476
+- sample_simulate_result.csv: UTF-8 text
+- sample_compare_result.csv: UTF-8 text
+- CLI 命令全部正常执行
+
+### Notes:
+- Task 31 完成
+- 下一步：Task 32 实现性能优化（Python 仿真加速）
+
+---
+
+## 2026-05-16 - Task 28: 实现输出格式化（CLI 表格）
+
+### What was done:
+- 重构 cmd/sim/main.go 中的 formatResults() 函数
+- 实现 printSection() 分组输出（仿真参数、患者统计、等待时间、队列统计、医生利用率、Preemption 中断）
+- 实现 printRow() 统一格式行输出（左对齐标签，右侧值）
+- 使用固定宽度格式化替代 tabwriter（解决跨平台终端兼容问题）
+- 添加 tableFormatter 结构体备用（支持将来复杂表格）
+
+### Testing:
+- go build ./... 成功
+- ./bin/sim.exe run 正确输出格式化的结果表格
+- ./bin/sim.exe simulate 正确输出格式化的结果表格
+- ./bin/sim.exe simulate --json 输出原始 JSON 格式（不受影响）
+
+### Notes:
+- Task 28 完成
+- 下一步：Task 29 实现错误处理和边界检查
+
+---
+
+## 2026-05-16 - Task 29: 实现错误处理和边界检查
+
+### What was done:
+- 实现 Python 参数验证函数 validate_params()，检查必需参数、到达率>0、服务时长>0、preemption_threshold>=0
+- 在 engine.py 中添加 run_simulation() 错误处理：参数验证失败时抛出 ValueError
+- 在 engine.py main() 中添加错误处理：JSON解析错误、参数验证错误、仿真执行错误
+- 在 runner.py 中添加错误处理：ValueError 捕获并返回 success=False
+- 在 main.go callPythonEngine() 中添加错误处理：参数为空检查、stderr 输出捕获、JSON 错误解析
+
+### Testing:
+- echo '参数' | python sim/engine.py 测试边界输入
+- Go build 成功
+- Go test 通过
+- Python pytest 通过
+- CLI 测试：
+  - ./bin/sim.exe run --json 正常输出
+  - ./bin/sim.exe compare --runs 2 正常执行
+  - 负值参数正确返回错误信息
+
+### Notes:
+- Task 29 完成
+- 下一步：Task 30 实现日志记录功能
+
+---
+
+## 2026-05-16 - Task 36: 实现 Streamlit Web 可视化界面
+
+### What was done:
+- 创建 streamlit_app.py Web 界面应用
+- 实现三大功能标签页：
+  - **单次仿真**：参数配置表单、实时仿真触发、结果展示（指标卡片+详细JSON）
+  - **敏感性分析**：扫描变量选择、参数扫描、折线图展示、最优推荐
+  - **历史记录**：从 SQLite 数据库加载历史仿真结果、表格展示
+- 集成调用 Python 仿真引擎 (engine.py)、runner.py、visualize.py
+- 使用纯 CSS 样式（非自定义主题），确保跨版本兼容性
+- 添加 streamlit>=1.28.0 到 requirements.txt
+
+### Testing:
+- python -m py_compile streamlit_app.py 语法检查通过
+- streamlit version 1.56.0 已安装
+- 可通过 `streamlit run streamlit_app.py` 启动 Web 界面
+
+### Notes:
+- Task 36 完成
+- Web 界面为可选功能，方便非 CLI 用户使用
+- 下一步：Task 37 实现参数校验和范围检查
+
+---
+
+## 2026-05-16 - Task 37: 实现参数校验和范围检查
+
+### What was done:
+- 确认 Python validate_params() 已在 engine.py 中实现，检查：
+  - 必需参数存在性检查
+  - 到达率 > 0
+  - 服务时长 > 0
+  - preemption_threshold >= 0
+  - seed 必须是整数
+- 确认 Go 端通过 callPythonEngine() 正确传递参数并接收错误
+- 确认 Go executeCmd 命令行参数会触发 Python 验证错误
+- 确认 Go config.go 的 Validate() 实现了配置级别的参数校验
+
+### Testing:
+- go build ./... 成功
+- go test ./... 通过 (5 tests)
+- pytest tests/test_engine.py -v 通过 (8 passed, 1 skipped)
+- CLI 边界测试：
+  - --new-rate=-0.5 → "新诊到达率必须 > 0，实际: -0.5"
+  - --new-service=0 → "新诊服务时长必须 > 0，实际: 0"
+  - --threshold=-5 → "Preemption 阈值必须 >= 0，实际: -5"
+- 所有错误信息正确、友好
+
+### Notes:
+- Task 37 完成（参数校验和范围检查已在 Task 29 中完整实现）
+- 下一步：Task 38 实现 README 示例场景补充

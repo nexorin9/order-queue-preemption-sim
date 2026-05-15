@@ -1,0 +1,45 @@
+# 低复查率场景配置
+# 适用于复查患者比例较低的门诊（如普通内科、专科门诊）
+
+simulation:
+  # 仿真时长（分钟）
+  duration: 480
+
+  # 重复次数（用于平均）
+  runs: 100
+
+# 新诊患者参数（新诊优先级 = 0）
+new_patient:
+  # 到达率（人/分钟），指数分布
+  arrival_rate: 0.12
+
+  # 服务时长（分钟），指数分布
+  service_time: 10
+
+# 复查患者参数（复查优先级 = 1）
+# 低复查率：复查到达率远低于新诊
+recheck_patient:
+  # 到达率（人/分钟），指数分布
+  arrival_rate: 0.03
+
+  # 服务时长（分钟），指数分布
+  service_time: 5
+
+# Preemption 抢先中断参数
+preemption:
+  # 抢先阈值（分钟）：当低优先级服务时间 > 此值时，允许被高优先级中断
+  threshold_minutes: 5
+
+  # 是否启用 preemption
+  enabled: true
+
+# 输出配置
+output:
+  # 是否输出详细日志
+  verbose: false
+
+  # CSV 输出路径
+  csv_path: "outputs/results.csv"
+
+  # 图表输出路径
+  chart_path: "outputs/sensitivity.png"

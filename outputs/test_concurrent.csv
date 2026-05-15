@@ -1,0 +1,7 @@
+preemption_threshold,avg_wait_time,avg_queue_length,server_utilization,preemption_count,new_patient_avg_wait,recheck_patient_avg_wait,total_patients,max_wait_time,max_queue_length,runs
+0,53.05,10.88,1.0000,19.0,85.66,1.22,75,173.99,23,2
+3,45.39,8.84,1.0000,19.0,73.29,1.22,75,158.47,20,2
+5,44.25,8.24,1.0000,19.0,71.26,1.22,75,153.63,18,2
+7,31.99,5.26,1.0000,19.0,51.82,1.22,75,113.85,12,2
+10,14.93,2.13,1.0000,18.5,24.19,1.22,72,58.16,8,2
+15,14.93,2.13,1.0000,18.5,24.19,1.22,72,58.16,8,2
